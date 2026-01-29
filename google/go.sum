@@ -1,2 +1,6 @@
 github.com/gokhanaltun/o2go v0.0.0-20260125140033-59a80d1f08d4 h1:MZMCsmWBaK1GiLGxnsYYhgq7k36u41kAwVArhs+ypqQ=
 github.com/gokhanaltun/o2go v0.0.0-20260125140033-59a80d1f08d4/go.mod h1:pbE9+O9Xm1LCDEbma79EhGFUsadPNXhGPNoG33ycIRM=
+github.com/gokhanaltun/o2go v1.0.0 h1:xhGTznqgI5w3WP7JtTJZQ2J7/03N2qeonCNaHz/qpDg=
+github.com/gokhanaltun/o2go v1.0.0/go.mod h1:pbE9+O9Xm1LCDEbma79EhGFUsadPNXhGPNoG33ycIRM=
+github.com/gokhanaltun/o2go v1.0.2 h1:nVUy+RR1uS1+RE8tsJSCYoIzqcxo2sBdHrm4dTBI5mo=
+github.com/gokhanaltun/o2go v1.0.2/go.mod h1:pbE9+O9Xm1LCDEbma79EhGFUsadPNXhGPNoG33ycIRM=
