@@ -46,8 +46,8 @@ Core OAuth2 flows always remain the same.
 
 ## Available providers
 
-- **[Google](https://github.com/gokhanaltun/o2go-providers/google)**
-- **[GitHub](https://github.com/gokhanaltun/o2go-providers/github)**
+- **[Google](https://github.com/gokhanaltun/o2go-providers/blob/main/docs/google.md)**
+- **[GitHub](https://github.com/gokhanaltun/o2go-providers/blob/main/docs/github.md)**
 
 Each provider has its own README with installation instructions and usage examples.  
 (More providers may be added over time.)
