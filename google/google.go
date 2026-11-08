@@ -1,6 +1,6 @@
 package google
 
-import "github.com/gokhanaltun/o2go"
+import "github.com/gokhanaltun/o2go/v2"
 
 func New(cfg *o2go.Config, opts ...o2go.Option) (*Google, error) {
 	google := &Google{}

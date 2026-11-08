@@ -1,6 +1,4 @@
-github.com/gokhanaltun/o2go v0.0.0-20260125140033-59a80d1f08d4 h1:MZMCsmWBaK1GiLGxnsYYhgq7k36u41kAwVArhs+ypqQ=
-github.com/gokhanaltun/o2go v0.0.0-20260125140033-59a80d1f08d4/go.mod h1:pbE9+O9Xm1LCDEbma79EhGFUsadPNXhGPNoG33ycIRM=
-github.com/gokhanaltun/o2go v1.0.0 h1:xhGTznqgI5w3WP7JtTJZQ2J7/03N2qeonCNaHz/qpDg=
-github.com/gokhanaltun/o2go v1.0.0/go.mod h1:pbE9+O9Xm1LCDEbma79EhGFUsadPNXhGPNoG33ycIRM=
-github.com/gokhanaltun/o2go v1.0.2 h1:nVUy+RR1uS1+RE8tsJSCYoIzqcxo2sBdHrm4dTBI5mo=
-github.com/gokhanaltun/o2go v1.0.2/go.mod h1:pbE9+O9Xm1LCDEbma79EhGFUsadPNXhGPNoG33ycIRM=
+github.com/go-jose/go-jose/v4 v4.1.9 h1:pKfeQkig1NmgK4hJrZYXLEYURXfoJB61Larw0uIW4gY=
+github.com/go-jose/go-jose/v4 v4.1.9/go.mod h1:x4oUasVrzR7071A4TnHLGSPpNOm2a21K9Kf04k1rs08=
+github.com/gokhanaltun/o2go/v2 v2.0.0 h1:Z2IPKrZ8NvJG91fQM9/6KA7XNEgoRuJrkPsE+5IIdXU=
+github.com/gokhanaltun/o2go/v2 v2.0.0/go.mod h1:G80Lk0/5IjedrusLG1JOIMpvgwDr4M9rVh2wiV13MHs=

@@ -1,0 +1,4 @@
+github.com/go-jose/go-jose/v4 v4.1.9 h1:pKfeQkig1NmgK4hJrZYXLEYURXfoJB61Larw0uIW4gY=
+github.com/go-jose/go-jose/v4 v4.1.9/go.mod h1:x4oUasVrzR7071A4TnHLGSPpNOm2a21K9Kf04k1rs08=
+github.com/gokhanaltun/o2go/v2 v2.0.0 h1:Z2IPKrZ8NvJG91fQM9/6KA7XNEgoRuJrkPsE+5IIdXU=
+github.com/gokhanaltun/o2go/v2 v2.0.0/go.mod h1:G80Lk0/5IjedrusLG1JOIMpvgwDr4M9rVh2wiV13MHs=

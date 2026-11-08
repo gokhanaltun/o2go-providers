@@ -1,21 +1,14 @@
-# GitHub Provider for o2go
+# GitHub provider
 
-
-This package provides an **official GitHub OAuth2 provider** for the [o2go](https://github.com/gokhanaltun/o2go) core library.  
-
-It wraps the core OAuth2 client and exposes GitHub-specific URLs and helpers.
-
----
+The GitHub provider supplies GitHub OAuth App endpoints for o2go v2. GitHub OAuth Apps do not provide the OIDC issuer and JWKS endpoints used for ID token validation, so this provider is OAuth 2.0 only.
 
 ## Installation
 
 ```bash
-go get github.com/gokhanaltun/o2go-providers/github
+go get github.com/gokhanaltun/o2go-providers/github/v2
 ```
 
----
-
-## Quick Start
+## Example
 
 ```go
 package main
@@ -25,106 +18,65 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gokhanaltun/o2go"
-	"github.com/gokhanaltun/o2go-providers/github"
+	"github.com/gokhanaltun/o2go/v2"
+	"github.com/gokhanaltun/o2go-providers/github/v2"
 )
 
-func main() {
+func run(ctx context.Context) error {
 	cfg := &o2go.Config{
 		ClientID:     "YOUR_CLIENT_ID",
 		ClientSecret: "YOUR_CLIENT_SECRET",
 		RedirectURL:  "http://localhost:8080/callback",
 	}
-
 	client, err := github.New(cfg)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	authURL, err := client.AuthCodeURL("state123")
+	state, err := o2go.GenerateRandomState()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	// Store state in your application session.
+	authURL, err := client.AuthCodeURL(state, map[string]string{
+		"scope": "read:user user:email",
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Println("Redirect the user to:", authURL)
 
-	fmt.Println("Open this URL in your browser:", authURL)
-
-	// After the user authorizes your app, get the code from your callback endpoint
+	// After handling the callback and checking its state:
 	code := "CODE_FROM_CALLBACK"
-
-	ctx := context.Background()
-	resp, err := client.ExchangeAuthCode(ctx, code)
+	tokens, err := client.ExchangeAuthCode(ctx, code, nil)
 	if err != nil {
+		return err
+	}
+	fmt.Println("Access token:", tokens.Data["access_token"])
+	return nil
+}
+
+func main() {
+	if err := run(context.Background()); err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println("Access Token:", resp.Data["access_token"])
 }
 ```
 
----
+The provider uses `https://github.com/login/oauth/authorize` and `https://github.com/login/oauth/access_token`. It sets `Accept: application/json` on token requests so the response can be decoded by o2go. GitHub documents that the token endpoint defaults to form-encoded responses and returns JSON when requested with this header. See [Authorizing OAuth apps](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps).
 
-## Refresh Token Flow
+Pass scopes and other authorization parameters to `AuthCodeURL`. Pass token request extensions, such as `code_verifier`, to `ExchangeAuthCode`. The application is responsible for state validation and token storage.
 
-GitHub usually issues long-lived access tokens instead of refresh tokens,
-but if your GitHub app supports refresh tokens:
+GitHub only returns refresh tokens for apps configured for expiring tokens (or when `offline_access` is requested); a refresh token is not always available.
 
-```go
-refreshToken := resp.Data["refresh_token"].(string)
-
-newResp, err := client.ExchangeRefreshToken(context.Background(), refreshToken)
-if err != nil {
-	log.Fatal(err)
-}
-
-fmt.Println("New Access Token:", newResp.Data["access_token"])
-```
-
----
-
-## Features
-
-* Implements the minimal `Provider` interface for `o2go`
-
-* Delegates OAuth2 flows (auth code, refresh token) to the core client
-
-* Ready to use with GitHub OAuth2 endpoints:
-
-  * Authorization URL: `https://github.com/login/oauth/authorize`
-  * Token URL: `https://github.com/login/oauth/access_token`
-
-* Fully compatible with `o2go` core parameters:
-
-  * `AuthURLParams` (scope, state, PKCE challenge, etc.)
-  * `TokenParams` (extra parameters for token exchange)
-
-> PKCE and other OAuth2 extensions are handled via parameters — no special helpers are required.
-
----
-
-## Advanced Usage
-
-### Custom HTTP Client
+## Custom HTTP client
 
 ```go
+import (
+	"net/http"
+	"time"
+)
+
 httpClient := &http.Client{Timeout: 10 * time.Second}
-client, _ := github.New(cfg, o2go.WithHttpClient(httpClient))
+client, err := github.New(cfg, o2go.WithHttpClient(httpClient))
 ```
-
-### Provider-specific extras
-
-You can pass extra parameters when calling `AuthCodeURL` or in `cfg.AuthURLParams` for GitHub-specific features like scopes or PKCE:
-
-```go
-cfg.AuthURLParams = map[string]string{
-	"scope": "repo user",
-}
-```
-
----
-
-## Design Philosophy
-
-* This provider is a thin wrapper around the core `o2go` library
-* Core OAuth2 flows remain **unchanged**
-* Provider-specific logic stays isolated
-* Users can still implement **custom providers** if needed

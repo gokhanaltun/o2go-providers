@@ -1,21 +1,14 @@
-# Google Provider for o2go
+# Google provider
 
-
-This package provides an **official Google OAuth2 provider** for the [o2go](https://github.com/gokhanaltun/o2go) core library.  
-
-It wraps the core OAuth2 client and exposes Google-specific URLs and helpers.
-
----
+The Google provider supplies Google's OAuth 2.0 and OpenID Connect endpoints for o2go v2. It exposes the issuer and JWKS URLs required by `ParseClaimsWithOptions`.
 
 ## Installation
 
 ```bash
-go get github.com/gokhanaltun/o2go-providers/google
+go get github.com/gokhanaltun/o2go-providers/google/v2
 ```
 
----
-
-## Quick Start
+## Example
 
 ```go
 package main
@@ -25,103 +18,82 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gokhanaltun/o2go"
-	"github.com/gokhanaltun/o2go-providers/google"
+	"github.com/gokhanaltun/o2go/v2"
+	"github.com/gokhanaltun/o2go-providers/google/v2"
 )
 
-func main() {
+func run(ctx context.Context) error {
 	cfg := &o2go.Config{
 		ClientID:     "YOUR_CLIENT_ID",
 		ClientSecret: "YOUR_CLIENT_SECRET",
 		RedirectURL:  "http://localhost:8080/callback",
 	}
-
 	client, err := google.New(cfg)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	authURL, err := client.AuthCodeURL("state123")
+	state, err := o2go.GenerateRandomState()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	nonce, err := o2go.GenerateRandomNonce()
+	if err != nil {
+		return err
+	}
+	pkce, err := o2go.GenerateRandomPKCE()
+	if err != nil {
+		return err
+	}
+	// Store state, nonce, and the verifier in your application session.
+	authURL, err := client.AuthCodeURL(state, map[string]string{
+		"scope":                 "openid profile email",
+		"nonce":                 nonce,
+		"code_challenge":        pkce.CodeChallenge,
+		"code_challenge_method": "S256",
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Println("Redirect the user to:", authURL)
 
-	fmt.Println("Open this URL in your browser:", authURL)
-
-	// After the user authorizes your app, get the code from the callback
+	// After handling the callback and checking its state:
 	code := "CODE_FROM_CALLBACK"
-
-	ctx := context.Background()
-	resp, err := client.ExchangeAuthCode(ctx, code)
+	tokens, err := client.ExchangeAuthCode(ctx, code, map[string]string{
+		"code_verifier": pkce.CodeVerifier,
+	})
 	if err != nil {
+		return err
+	}
+	claims, err := client.ParseClaimsWithOptions(ctx, *tokens, o2go.ParseClaimsOptions{
+		Nonce: &nonce,
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Println("Subject:", claims["sub"])
+	return nil
+}
+
+func main() {
+	if err := run(context.Background()); err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println("Access Token:", resp.Data["access_token"])
 }
 ```
 
----
+The authorization URL is `https://accounts.google.com/o/oauth2/v2/auth`; the token endpoint is `https://oauth2.googleapis.com/token`. The provider's OIDC issuer is `https://accounts.google.com`, and its JWKS URL is `https://www.googleapis.com/oauth2/v3/certs`. Google's OIDC documentation identifies these values in its discovery metadata. See [Google OpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect).
 
-## Refresh Token Flow
+State, nonce, PKCE verifier, callback handling, and token storage remain application-managed. Pass provider-specific parameters, such as scopes, to `AuthCodeURL` or the exchange methods.
 
-```go
-refreshToken := resp.Data["refresh_token"].(string)
-
-newResp, err := client.ExchangeRefreshToken(context.Background(), refreshToken)
-if err != nil {
-	log.Fatal(err)
-}
-
-fmt.Println("New Access Token:", newResp.Data["access_token"])
-```
-
----
-
-## Features
-
-* Implements the minimal `Provider` interface for `o2go`
-
-* Delegates OAuth2 flows (auth code, refresh token) to the core client
-
-* Ready to use with Google OAuth2 endpoints:
-
-  * Authorization URL: `https://accounts.google.com/o/oauth2/auth`
-  * Token URL: `https://oauth2.googleapis.com/token`
-
-* Fully compatible with `o2go` core parameters:
-
-  * `AuthURLParams` (scope, state, PKCE challenge, etc.)
-  * `TokenParams` (extra parameters for token exchange)
-
-> PKCE and other OAuth2 extensions are handled via parameters — no special helpers are required.
-
----
-
-## Advanced Usage
-
-### Custom HTTP Client
+## Custom HTTP client
 
 ```go
+import (
+	"net/http"
+	"time"
+)
+
 httpClient := &http.Client{Timeout: 10 * time.Second}
-client, _ := google.New(cfg, o2go.WithHttpClient(httpClient))
+client, err := google.New(cfg, o2go.WithHttpClient(httpClient))
 ```
-
-### Provider-specific extras
-
-You can pass extra parameters when calling `AuthCodeURL` or in `cfg.AuthURLParams` for Google-specific features like scopes or PKCE:
-
-```go
-cfg.AuthURLParams = map[string]string{
-	"scope": "profile email",
-}
-```
-
----
-
-## Design Philosophy
-
-* This provider is a thin wrapper around the core `o2go` library
-* Core OAuth2 flows remain **unchanged**
-* Provider-specific logic stays isolated
-* Users can still implement **custom providers** if needed
